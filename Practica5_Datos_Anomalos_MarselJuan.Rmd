@@ -178,6 +178,32 @@ summary(dirty_iris_limpio)
 
 ```{r Solucion ejercicio 3, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
 
+# complete.cases() devuelve un vector true/false segun si la fila esta completa o no
+casos_completos_vec <- complete.cases(dirty_iris_limpio)
+
+#Calculamos el número de casos completos
+#sum() trata TRUE como 1 y FALSE como 0
+num_completas <- sum(casos_completos_vec)
+
+#Calculamos el número total de filas
+total_filas <- nrow(dirty_iris_limpio)
+
+#Calculamos el porcentaje
+porcentaje_completas <- (num_completas / total_filas) * 100
+
+print(paste("Número total de filas original: ", total_filas))
+print(paste("Número de observaciones completas (sin NAs): ", num_completas))
+print(paste("Porcentaje de observaciones completas: ", round(porcentaje_completas,2)," %"))
+
+
+# na.omit() crea un nuevo dataframe eliminando cualquier fila que contenga al menos un NA.
+clean_iris <- na.omit(dirty_iris_limpio)
+
+print(paste("Dimensiones del nuevo df clean_iris: ", nrow(clean_iris)," filas", ncol(clean_iris)," columnas."))
+
+# El número de filas de clean_iris debe ser igual a num_completas --> 92
+
+summary(clean_iris) #ya no debe haber NAs
 ```
 
 # Detección de outliers univariante
