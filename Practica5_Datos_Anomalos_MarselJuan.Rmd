@@ -415,14 +415,6 @@ iris_con_outliers <- dirty_iris_limpio %>%
 #(4 variables * 4 métodos)
 #glimpse(iris_con_outliers)
 
-print("Resumen de outliers detectados para Petal.Length")
-
-#summary() en columnas lógicas (TRUE/FALSE) nos da un conteo de los detectados como outliers (TRUE) y los tipicos (FALSE)
-iris_con_outliers %>% 
-  select(starts_with("outlier_Petal.Length")) %>%
-  summary()
-
- 
 ```
 
 ## Ejercicio 7: Comparativa de los métodos de detección de outliers
@@ -434,6 +426,34 @@ En los métodos de detección de outliers analizados, examina los resultados com
 
 ```{r Solucion ejercicio 7, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
 
+print("Resumen de outliers detectados para Petal.Length")
+
+#summary() en columnas lógicas (TRUE/FALSE) nos da un conteo de los detectados como outliers (TRUE) y los tipicos (FALSE)
+iris_con_outliers %>% 
+  select(starts_with("outlier_Petal.Length")) %>%
+  summary()
+
+#Valores etiquetados como outliers ordenados de menor a mayor
+
+print("Valores de Petal.Length etiquetados como outliers ordenados")
+
+#Filtramos para quedarnos con cualquier fila donde AL MENOS UNO de los métodos haya dado TRUE
+
+#Seleccionamos las columnas de outliers 
+columnas_outlier <- iris_con_outliers %>%
+  select(starts_with("outlier_Petal.Length"))
+
+#Calculamos la suma de TRUEs por fila
+#na.rm=TRUE para que (FALSE y NA) sume 0 
+suma_outliers_por_fila <- rowSums(columnas_outlier, na.rm = TRUE)
+
+#Filtramos el df original donde la suma fue > 0, es decir, algun metodo detecto un outlier
+valores_outliers <- iris_con_outliers %>%
+  filter(suma_outliers_por_fila > 0) %>%
+  select(Petal.Length, starts_with("outlier_Petal.Length")) %>%
+  arrange(Petal.Length)
+
+print(valores_outliers) 
 ```
 
 ## Ejercicio 8: Representación gráfica
