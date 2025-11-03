@@ -139,7 +139,33 @@ Reemplaza, en todas las columnas numéricas del data frame `dirty_iris`, los val
 Nota: Puedes reemplazar los valores para cada variable del dataframe usando `mutate` con la función `ifelse`.
 
 ```{r Solucion ejercicio 2, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
-# DEBEMOS ELIMINAR TAMBIEN LOS VALROES IGUALES A CERO YA QUE SE TRATA DE LONGITUDES DE PARTES DE UNA FLOR. NO PUEDEN SER O
+# DEBEMOS ELIMINAR TAMBIEN LOS VALORES IGUALES A CERO YA QUE SE TRATA DE LONGITUDES DE PARTES DE UNA FLOR. NO PUEDEN SER O
+
+# DEBEMOS ELIMINAR TAMBIEN LOS VALROES IGUALES A CERO...
+
+#clonamos dirty_iris para limpiar
+dirty_iris_limpio<-dirty_iris
+
+# 1. Identificar las columnas numéricas
+#sapply devuelve TRUE/FALSE por cada columna
+#which() nos da los indices de las que son TRUE
+columnas_numericas_idx <- which(sapply(dirty_iris, is.numeric))
+
+#para cada columna identificada como numerica
+for (col_idx in columnas_numericas_idx) {
+  
+  #extraer la columna
+  col_vector <- dirty_iris[[col_idx]] 
+  
+  #aplicar condicion, si para cada valor de esa columna, no es finito (es decir es inf,-inf,NaN, Na) o es cero, sustituir por NA sino, dejar el valor original
+  col_limpia <- ifelse(!is.finite(col_vector) | col_vector <= 0, NA, col_vector)
+  
+  #Reemplazar la columna en el dataframe
+  dirty_iris_limpio[[col_idx]] <- col_limpia
+}
+
+#ocmprobamos el resultado
+summary(dirty_iris_limpio)
 
 
 ```
