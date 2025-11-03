@@ -224,7 +224,77 @@ Hazlo para el data frame con observaciones completas `clean_iris` (que no tiene 
   * Compara los resultados para los dos conjuntos en la variable `Petal.Length`.
 
 ```{r , include = TRUE}
+library(dplyr)
+library(tidyr) # Para pivot_longer y separate
 
+#Definir la función MADM robusta a NAs
+#1.4826 * median(|x - median(x)|)
+madm <- function(x) {
+  mediana_x <- median(x, na.rm = TRUE)
+  desviacion_abs <- abs(x - mediana_x)
+  mediana_desv_abs <- median(desviacion_abs, na.rm = TRUE)
+  madm_valor <- 1.4826 * mediana_desv_abs
+  return(madm_valor)
+}
+
+#Creamos una lista con las fucniones a aplicar en cada columna
+funciones_estadisticas <- list(
+  media = ~mean(., na.rm = TRUE),
+  sd = ~sd(., na.rm = TRUE),
+  mediana = ~median(., na.rm = TRUE),
+  madm = ~madm(.), 
+  iqr = ~IQR(., na.rm = TRUE)
+)
+
+#Calcular estadísticos para clean_iris
+stats_clean <- clean_iris %>%
+  summarise(
+    across(
+      .cols = where(is.numeric), #sobre las columnas que sean numericas
+      .fns = funciones_estadisticas,
+      .names = "{.col}_{.fn}" #nombres de columnas como "Petal.Length_media"
+    )%>%
+      mutate(dataset = "clean_iris")
+  ) 
+
+#Calcular estadísticos para dirty_iris
+stats_dirty <- dirty_iris %>%
+  summarise(
+    across(
+      .cols = where(is.numeric),
+      .fns = funciones_estadisticas,
+      .names = "{.col}_{.fn}"
+    )%>%
+      mutate(dataset = "dirty_iris_con_NA")
+  ) 
+
+# Combinamos los dos df 
+stats_combinados <- bind_rows(stats_clean, stats_dirty)
+
+#Reordenamos la tabla
+stats_formateados <- stats_combinados %>%
+  #Pasamos de formato ancho a largo
+  pivot_longer(
+    cols = -dataset, #todas menos la identificadora del dataset 
+    names_to = "variable_estadistico", 
+    values_to = "valor"
+  ) %>%
+  #Separamos Petal.Length_media en Petal.Length (variable) y media (estadistico)
+  separate(variable_estadistico, into = c("variable", "estadistico"), sep = "_") %>%
+  #Pasamos las métricas a columnas para la tabla final
+  pivot_wider(
+    names_from = estadistico,
+    values_from = valor
+  )
+
+#Mostrar la comparación para Petal.Length 
+print("Comparación de Estadísticos para Petal.Length")
+
+comparacion_petal <- stats_formateados %>%
+  filter(variable == "Petal.Length")
+
+# Imprimir la tabla de comparación
+print(comparacion_petal)
 ```
 
 
