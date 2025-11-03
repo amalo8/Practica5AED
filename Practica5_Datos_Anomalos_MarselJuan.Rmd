@@ -463,7 +463,37 @@ Representa gráficamente los datos de `Petal.Length` (distribución de puntos en
 Nota: usa en `geom_point` con la opción `position='jitter'` para mejorar la legibilidad del gráfico.
 
 ```{r Solucion ejercicio 8, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
+library(ggplot2)
 
+#El objetivo es tener una columna 'metodo_outlier' y una columna 'es_outlier'
+df_grafico <- iris_con_outliers %>%
+  # Seleccionamos solo Petal.Length y sus columnas de outlier
+  select(Petal.Length, starts_with("outlier_Petal.Length")) %>%
+  
+  # Transformamos las columnas de outlier en filas
+  pivot_longer(
+    cols = starts_with("outlier_Petal.Length"), #Las columnas a pivotar
+    names_to = "metodo_outlier",                 #Nueva columna para el nombre del método
+    values_to = "es_outlier"                     #Nueva columna para el valor TRUE/FALSE
+  ) %>%
+  #Cambiamos el nombre de metodo eliminando la parte de outlier_Petal.Length_ y dejando solo el nombre del metodo
+  mutate(
+    metodo_outlier = gsub("outlier_Petal.Length_", "", metodo_outlier),
+  ) %>%
+  #Convertimos NAs a FALSE para que no se coloreen como outliers
+  mutate(es_outlier = ifelse(is.na(es_outlier), FALSE, es_outlier))
+
+ggplot(df_grafico, aes(x = metodo_outlier, y = Petal.Length, color = es_outlier)) +
+  geom_point(position = position_jitter(width = 0.3)) + #resuelve un problema de overplotting.
+#Su función es añadir una pequeña cantidad de "ruido" aleatorio a la posición de cada punto.
+
+  scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red"),
+                     labels = c("Típico", "Outlier")) +
+  labs(
+    title = "Detección de Outliers en Petal.Length por Método",
+    x = "Método de Detección de Outlier",
+    y = "Petal.Length",
+    color = "¿Es outlier?") 
 ```
 
 # Imputación de datos
