@@ -512,12 +512,53 @@ Se puede realizar una imputación generalizada (usando todos los valores de la v
 
 ```{r Solucion ejercicio 9a, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
 
+#Calcular la media general de Petal.Length (ignorando NAs)
+media_general <- mean(dirty_iris_limpio$Petal.Length, na.rm = TRUE)
+
+print(paste("La media de Petal.Length es:", media_general))
+
+#Imputar NAs con la media 
+iris_imputado_media <- dirty_iris_limpio %>%
+  mutate(
+    Petal.Length1 = ifelse(is.na(Petal.Length),  #Si Petal.Length es NA
+                           media_general,       #usa la media general
+                           Petal.Length)        #si no deja el valor original
+  )
+
+#Mostramos las filas que antes eran NA
+print("Filas imputadas con la media general")
+iris_imputado_media %>%
+  filter(is.na(dirty_iris_limpio$Petal.Length)) %>% 
+  select(Species,Petal.Length, Petal.Length1) 
 ```
 
   * Imputa los missing data en `Petal.Length` empleando en esta ocasión la media para cada tipo de `Species` (usar`group_by` y `mutate`) creando una nueva variable `Petal.Length2`.
 
 ```{r Solucion ejercicio 9b, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
 
+#Imputar NAs usando la media de cada grupo Species
+iris_imputado_media_species <- dirty_iris_limpio %>%
+  group_by(Species) %>% #Agrupamos por especie
+  mutate(
+    #ahora calcula la media 
+    #solo para el grupo de especies de esa fila
+    Petal.Length2 = ifelse(is.na(Petal.Length),
+                           mean(Petal.Length, na.rm = TRUE),
+                           Petal.Length)
+  ) %>%
+  ungroup() 
+
+
+print("Verificación: Filas imputadas con la media del grupo Species")
+iris_imputado_media_species %>%
+  filter(is.na(dirty_iris_limpio$Petal.Length)) %>%
+  select(Species, Petal.Length, Petal.Length2) 
+
+#Podemos tb ver las medias que se usaron para cada grupo
+print("Medias usadas para la imputación por especie")
+iris_imputado_media_species %>%
+  group_by(Species) %>%
+  summarise(Media_Grupo = first(Petal.Length2[is.na(Petal.Length)])) #"Para cada Species, encuentra una fila que solía ser NA en Petal.Length, y dime que valor le pusimos en Petal.Length2". First solo coge el primer valor del vector de cada grupo.
 
 ```
 
