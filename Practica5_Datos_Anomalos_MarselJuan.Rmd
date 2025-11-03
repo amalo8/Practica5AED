@@ -570,16 +570,53 @@ Vamos a comparar ahora los dos métodos de imputación gráficamente eliminando 
   
 ```{r Solucion ejercicio 10a, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
 
- 
+#Recalculamos outliers para Petal.Length2
+
+df_imputado_media_species_con_outliers <- iris_imputado_media_species %>%
+  mutate(
+    across(
+      .cols = Petal.Length2,
+      .fns = funciones_outliers,
+      .names = "out_{.col}_{.fn}" # Crea 'out_Petal.Length2_metodo'
+    )
+  )
+
+print("Resumen de outliers recalculados para Petal.Length2 para cada método")
+df_imputado_media_species_con_outliers %>%
+  select(starts_with("out_Petal.Length2")) %>%
+  summary()
 ```
 
   * Representa los dos tipos de imputación empleados en un gráfico de dispersión (`Petal.Length1` vs. `Petal.Length2`) eliminando los outliers identificados con la regla `reglapercentil` y poniendo en diferente color los datos originales y los imputados.
 
 ```{r Solucion ejercicio 10b, include=TRUE, echo=TRUE, eval=TRUE, results=TRUE}
 
+#Necesitamos añadir Petal.Length1 y la columna 'es_imputado' al dataframe que ya tenemos.
 
+df_grafico_final <- df_imputado_media_species_con_outliers %>%
+  mutate(
+    #Añadimos la columna Petal.Length1
+    Petal.Length1 = ifelse(is.na(Petal.Length), media_general, Petal.Length),
+    #Añadimos la columna para colorear basada en el Petal.Length original
+    es_imputado = is.na(Petal.Length)
+  )
 
+#Filtrar los outliers usando la regla 'percentil'
+df_filtrado <- df_grafico_final %>%
+  filter(!isTRUE(out_Petal.Length2_percentil)) #quedarnos con las filas que no son TRUE segun regla percentil
+
+ggplot(df_filtrado, aes(x = Petal.Length1, y = Petal.Length2, color = es_imputado)) +
+  geom_point() +
+  scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red"),
+                     labels = c("Original", "Imputado")) + geom_abline(intercept = 0, slope = 1, linetype = "dashed", color = "grey")+
+  labs(
+    title = "Comparación de Métodos de Imputación (Sin Outliers)",
+    x = "Petal.Length1 (Imputación con Media General)",
+    y = "Petal.Length2 (Imputación con Media por Especie)",
+    color = "¿Es imputado?"
+  )
 ```
+Los valores en la recta X=Y son los valores originales que no han sido imputados, cuyo valor no se modifica al imputar ya que no eran NA. 
 
 
 
